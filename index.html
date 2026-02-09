@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Be My Valentine?</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --pink: #ff4d6d;
+            --light-pink: #fff0f3;
+            --dark-red: #c9184a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--light-pink);
+            color: var(--dark-red);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #bg-animation-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .falling-emoji {
+            position: absolute;
+            top: -50px;
+            font-size: 1.5rem;
+            animation: fall linear forwards;
+            user-select: none;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(360deg); }
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2.5rem;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(255, 77, 109, 0.2);
+            max-width: 650px;
+            width: 90%;
+            z-index: 10;
+            position: relative;
+        }
+
+        .screen { display: none; }
+        .active { display: block; animation: fadeIn 0.5s ease-in; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        button {
+            background-color: var(--pink);
+            color: white;
+            border: none;
+            padding: 15px 35px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        button:hover { 
+            transform: scale(1.05); 
+            background-color: var(--dark-red);
+        }
+
+        #no-btn { position: relative; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        img {
+            max-width: 100%;
+            border-radius: 20px;
+            margin: 15px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            object-fit: cover;
+        }
+
+        .image-container { display: flex; gap: 15px; justify-content: center; }
+        .image-container img { width: 45%; height: 250px; }
+        .big-image { width: 100%; max-height: 400px; }
+    </style>
+</head>
+<body>
+
+<div id="bg-animation-container"></div>
+
+<div class="container">
+    <div id="screen-ask" class="screen active">
+        <h1>Will you be my Valentine?</h1>
+        <button onclick="nav('screen-story-0')">Yes</button>
+        <button id="no-btn" onmouseover="moveNoButton()" onclick="goToGuilt()">No</button>
+    </div>
+
+    <div id="screen-guilt" class="screen">
+        <h2>Do you really wanna hurt me?</h2>
+        <img src="images/sad_face.jpg" alt="Sad Face" class="big-image">
+        <br>
+        <button onclick="reset()">Don't hurt me</button>
+    </div>
+
+    <div id="story-container"></div>
+
+    <div id="screen-final" class="screen">
+        <h2>My Everything</h2>
+        <img src="images/final_photo.jpg" alt="Final Memory" class="big-image">
+        <p>You make this world so much brighter and more beautiful. And I thank you for every single moment we spend together. I love you! Happy Valentine's Day!.</p>
+        <button onclick="launchMoreLove()">More love</button>
+    </div>
+</div>
+
+<script>
+    // --- BACKGROUND FALLING ANIMATION ---
+    const bgContainer = document.getElementById('bg-animation-container');
+    const loveEmojis = ['❤️', '💖', '🥰', '💕', '🌹', '🌸', '✨'];
+
+    function createFallingEmoji() {
+        const emoji = document.createElement('div');
+        emoji.classList.add('falling-emoji');
+        emoji.innerText = loveEmojis[Math.floor(Math.random() * loveEmojis.length)];
+        emoji.style.left = Math.random() * 100 + "vw";
+        const duration = Math.random() * 3 + 4 + "s";
+        emoji.style.fontSize = Math.random() * 20 + 10 + "px";
+        emoji.style.animationDuration = duration;
+        emoji.style.opacity = Math.random() * 0.5 + 0.3;
+        bgContainer.appendChild(emoji);
+        setTimeout(() => { emoji.remove(); }, parseFloat(duration) * 1000);
+    }
+    setInterval(createFallingEmoji, 400);
+
+    // --- STORY DATA ---
+    const storyData = [
+		{ title: "It’s always good to be with you", img1: "images/photo1a.jpg", img2: "images/photo1b.jpg", text: "Ever since we first met, I’ve always felt peaceful, happy, and comfortable around you." },
+        { title: "And when we travel...", img1: "images/photo2a.jpg", img2: "images/photo2b.jpg", text: "You always make our trips more colorful and fun" },
+		{ title: "And when we’re at home...", img1: "images/photo3a.jpg", img2: "images/photo3b.jpg", text: "You make even the most ordinary everyday things more pleasant and interesting" },
+		{ title: "When we're out with others...", img1: "images/photo4a.jpg", img2: "images/photo4b.jpg", text: "I always feel comfortable in the company of your friends and acquaintances as long as you’re by my side" },
+        { title: "Or when it’s just the two of us...", img1: "images/photo5a.jpg", img2: "images/photo5b.jpg", text: "It's never boring with you, even when we’re just sitting at home" },
+		{ title: "And when it's just the two of us...", img1: "images/photo6a.jpg", img2: "images/photo6b.jpg", text: "It's good to be with you even when there's nothing else around" },
+        { title: "When we’re being silly...", img1: "images/photo7a.jpg", img2: "images/photo7b.jpg", text: "Messing around with you is always more fun, it leaves such sweet memories deep in my soul." },
+		{ title: "And when we're serious (or not so much)...", img1: "images/photo8a.jpg", img2: "images/photo8b.jpg", text: "Well... we're rarely serious, so oops! My bad" }
+    ];
+
+    const storyContainer = document.getElementById('story-container');
+    storyData.forEach((data, i) => {
+        const nextTarget = (i === 4) ? 'screen-final' : `screen-story-${i + 1}`;
+        const prevTarget = (i === 0) ? 'screen-ask' : `screen-story-${i - 1}`;
+        storyContainer.innerHTML += `
+            <div id="screen-story-${i}" class="screen">
+                <h2>${data.title}</h2>
+                <div class="image-container">
+                    <img src="${data.img1}" alt="Memory">
+                    <img src="${data.img2}" alt="Memory">
+                </div>
+                <p>${data.text}</p>
+                <button onclick="nav('${prevTarget}')">Back</button>
+                <button onclick="nav('${nextTarget}')">Next</button>
+            </div>
+        `;
+    });
+
+    // --- NAVIGATION AND LOGIC ---
+    let noHoverCount = 0;
+
+    function nav(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    // FIXED NO BUTTON LOGIC
+    function moveNoButton() {
+        if (noHoverCount < 5) {
+            const btn = document.getElementById('no-btn');
+            // Generate a random position within a 400px range
+            const randomX = Math.floor(Math.random() * 400) - 200;
+            const randomY = Math.floor(Math.random() * 400) - 200;
+            
+            btn.style.position = 'relative'; // Ensure it can move
+            btn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+            
+            noHoverCount++;
+        } else {
+            // After 5 times, we stop moving and it stays in its last random position
+            // becoming clickable to trigger the guilt screen.
+            const btn = document.getElementById('no-btn');
+            btn.style.cursor = 'pointer';
+        }
+    }
+
+    function goToGuilt() {
+        // Only allow navigation to guilt screen if they've tried to hover 5 times
+        if (noHoverCount >= 5) {
+            nav('screen-guilt');
+        }
+    }
+
+    function reset() {
+        noHoverCount = 0;
+        const btn = document.getElementById('no-btn');
+        btn.style.transform = `translate(0px, 0px)`; // Bring button back to center
+        nav('screen-ask');
+    }
+
+    function launchMoreLove() {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#ff4d6d', '#ff758f', '#c9184a'] });
+        const scalar = 3;
+        const shapes = [confetti.shapeFromText({ text: '❤️', scalar }), confetti.shapeFromText({ text: '😘', scalar })];
+        confetti({ shapes: shapes, particleCount: 40, spread: 150, origin: { y: 0.6 }, scalar: scalar });
+    }
+</script>
+
+</body>
+</html>
