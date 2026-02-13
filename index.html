@@ -39,6 +39,7 @@
             margin: 0;
             overflow: hidden;
             position: relative;
+            touch-action: manipulation; /* Improves mobile tap response */
         }
 
         #bg-animation-container {
@@ -54,7 +55,7 @@
             background: var(--glass);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            padding: 3.5rem;
+            padding: 2.5rem;
             border-radius: 40px;
             box-shadow: 0 25px 50px rgba(255, 77, 109, 0.2);
             max-width: 650px;
@@ -70,11 +71,11 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        .ask-title { font-family: 'Pacifico', cursive; font-size: 2.8rem; margin-bottom: 1.5rem; }
+        .ask-title { font-family: 'Pacifico', cursive; font-size: 2.2rem; margin-bottom: 1.5rem; }
 
         input {
             padding: 12px 20px;
-            font-size: 1.1rem;
+            font-size: 1rem;
             border-radius: 25px;
             border: 2px solid var(--pink);
             margin-bottom: 15px;
@@ -86,21 +87,17 @@
         .error-box {
             color: #d00000;
             font-weight: bold;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             margin-bottom: 15px;
             min-height: 4em;
-            padding: 0 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         button {
             background: linear-gradient(45deg, var(--pink), #ff758f);
             color: white;
             border: none;
-            padding: 14px 35px;
-            font-size: 1.1rem;
+            padding: 14px 30px;
+            font-size: 1rem;
             border-radius: 100px;
             font-weight: 700;
             cursor: pointer;
@@ -108,13 +105,23 @@
             transition: 0.3s;
         }
 
-        button:hover { transform: scale(1.05); }
-        .back-btn { background: #eee; color: #666; }
+        #no-btn {
+            background: white;
+            color: var(--pink);
+            border: 2px solid var(--pink);
+            position: relative;
+            z-index: 100;
+        }
 
-        img { max-width: 100%; border-radius: 25px; margin: 15px 0; object-fit: cover; }
-        .image-container { display: flex; gap: 15px; justify-content: center; }
-        .image-container img { width: 45%; height: 220px; }
-        .big-image { width: 100%; max-height: 350px; }
+        img { max-width: 100%; border-radius: 20px; margin: 15px 0; object-fit: cover; }
+        .image-container { display: flex; gap: 10px; justify-content: center; }
+        .image-container img { width: 48%; height: 180px; }
+        .big-image { width: 100%; max-height: 300px; }
+
+        @media (max-width: 480px) {
+            .ask-title { font-size: 1.8rem; }
+            .container { padding: 1.5rem; }
+        }
     </style>
 </head>
 <body>
@@ -123,31 +130,30 @@
 
 <div class="container">
     <div id="screen-ask" class="screen active">
-        <div style="font-size: 4rem;">💌</div>
+        <div style="font-size: 3rem;">💌</div>
         <h1 class="ask-title">Will you be my Valentine?</h1>
         <button onclick="nav('screen-verify')">Yes, I will!</button>
-        <button id="no-btn" onmouseover="moveNoButton()" onclick="goToGuilt()">No</button>
+        <button id="no-btn" onmouseover="handleNoInteraction()" onclick="handleNoInteraction()">No</button>
     </div>
 
     <div id="screen-verify" class="screen">
-        <h1 class="ask-title" style="font-size: 2rem;">Identity Check</h1>
+        <h1 class="ask-title" style="font-size: 1.8rem;">Identity Check</h1>
         <p id="question-text">Enter your date of birth (DD.MM.YYYY)</p>
         <input type="text" id="verify-input" placeholder="Answer here...">
         <div id="error-message" class="error-box"></div>
-        <br>
         <button onclick="checkVerification()">Submit</button>
-        <button class="back-btn" onclick="reset()">Back</button>
+        <button style="background: #eee; color: #666;" onclick="reset()">Back</button>
     </div>
 
     <div id="screen-welcome" class="screen">
-        <div style="font-size: 4rem;">😊</div>
-        <h1 class="ask-title" style="font-size: 2.2rem;">Access Granted!</h1>
-        <p style="font-size: 1.3rem;">I'm glad to see you here :) <br>Let's take a look at what I've prepared for you!</p>
+        <div style="font-size: 3rem;">😊</div>
+        <h1 class="ask-title">Access Granted!</h1>
+        <p>I'm glad to see you here :) <br>Let's take a look at what I've prepared for you!</p>
         <button onclick="nav('screen-story-0')">Let's go!</button>
     </div>
 
     <div id="screen-guilt" class="screen">
-        <h1 class="ask-title" style="font-size: 2.2rem;">Do you really wanna hurt me? Let's act like that never happened</h1>
+        <h1 class="ask-title" style="font-size: 1.8rem;">Do you really wanna hurt me?</h1>
         <img src="images/sad_face.jpg" alt="Sad Face" class="big-image">
         <br>
         <button onclick="reset()">I'm sorry, take me back!</button>
@@ -164,44 +170,58 @@
 </div>
 
 <script>
-    // --- VERIFICATION LOGIC ---
+    let noHoverCount = 0;
+    let lastMoveTime = 0;
+
+    // Combined logic for Mobile and Desktop
+    function handleNoInteraction() {
+        const now = Date.now();
+        // Prevent accidental double-triggers on mobile (tap + click)
+        if (now - lastMoveTime < 300) return;
+
+        if (noHoverCount < 5) {
+            const btn = document.getElementById('no-btn');
+            // Movement logic
+            const x = (Math.random() - 0.5) * 250;
+            const y = (Math.random() - 0.5) * 250;
+            btn.style.transform = `translate(${x}px, ${y}px)`;
+            
+            noHoverCount++;
+            lastMoveTime = now;
+        } else {
+            // On the 6th interaction, navigate to guilt
+            nav('screen-guilt');
+        }
+    }
+
+    // --- VERIFICATION ---
     let currentStep = 0;
     const errors = [
-        "Sorry, but you don't have the right clearance. This page requires a specific level of grace, beauty, and patience that you clearly lack. Try being [Wife's Name] and coming back later.",
-        "I'm sorry, I'm afraid I can't let you do that. This area is reserved for the woman who actually knows where my keys are. If you aren't her, you're just a glitch in my system",
-        "You’ve reached a restricted area. Only the person who married me is allowed in here. Since you aren't her, I’ve already sent a notification to her phone. Good luck explaining this!"
+        "Sorry, but you don't have the right clearance. This page requires a specific level of grace and beauty. Try being [Wife's Name]!",
+        "I'm afraid I can't let you do that. This area is reserved for the woman who actually knows where my keys are.",
+        "Restricted area! Only the person who married me is allowed in here. I've notified her phone!"
     ];
 
     function checkVerification() {
-        const inputField = document.getElementById('verify-input');
-        const input = inputField.value.trim();
+        const input = document.getElementById('verify-input').value.trim();
         const errorDisplay = document.getElementById('error-message');
-        
         if (currentStep === 0) {
             if (input === "20.12.1992") {
                 currentStep = 1;
                 errorDisplay.innerText = "";
-                inputField.value = "";
+                document.getElementById('verify-input').value = "";
                 document.getElementById('question-text').innerText = "What's your cat's name?";
-            } else {
-                showRandomError();
-            }
+            } else { showRandomError(); }
         } else if (currentStep === 1) {
-            if (input.toLowerCase() === "hunter") {
-                nav('screen-welcome');
-            } else {
-                showRandomError();
-            }
+            if (input.toLowerCase() === "hunter") { nav('screen-welcome'); }
+            else { showRandomError(); }
         }
     }
 
     function showRandomError() {
-        const errorDisplay = document.getElementById('error-message');
-        const randomMsg = errors[Math.floor(Math.random() * errors.length)];
-        errorDisplay.innerText = randomMsg;
+        document.getElementById('error-message').innerText = errors[Math.floor(Math.random() * errors.length)];
     }
 
-    // --- NAVIGATION LOGIC ---
     function nav(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -217,7 +237,7 @@
         nav('screen-ask');
     }
 
-    // --- STORY DATA ---
+    // --- STORY ---
     const storyData = [
 		{ title: "It’s always good to be with you", img1: "images/photo1a.jpg", img2: "images/photo1b.jpg", text: "Ever since we first met, I’ve always felt peaceful, happy, and comfortable around you." },
         { title: "And when we travel...", img1: "images/photo2a.jpg", img2: "images/photo2b.jpg", text: "You always make our trips more colorful and fun" },
@@ -235,43 +255,25 @@
         const prevTarget = (i === 0) ? 'screen-welcome' : `screen-story-${i - 1}`;
         storyContainer.innerHTML += `
             <div id="screen-story-${i}" class="screen">
-                <h1 class="ask-title" style="font-size: 2.5rem;">${data.title}</h1>
-                <div class="image-container">
-                    <img src="${data.img1}" alt="Memory">
-                    <img src="${data.img2}" alt="Memory">
-                </div>
+                <h1 class="ask-title">${data.title}</h1>
+                <div class="image-container"><img src="${data.img1}"><img src="${data.img2}"></div>
                 <p>${data.text}</p>
-                <button onclick="nav('${prevTarget}')">Back</button>
+                <button style="background: #eee; color: #666;" onclick="nav('${prevTarget}')">Back</button>
                 <button onclick="nav('${nextTarget}')">Next</button>
             </div>
         `;
     });
 
-    // --- INTERACTION EFFECTS ---
-    let noHoverCount = 0;
-    function moveNoButton() {
-        if (noHoverCount < 5) {
-            const btn = document.getElementById('no-btn');
-            btn.style.transform = `translate(${(Math.random()-0.5)*350}px, ${(Math.random()-0.5)*350}px)`;
-            noHoverCount++;
-        }
-    }
-
-    function goToGuilt() { if (noHoverCount >= 5) nav('screen-guilt'); }
-
-    function launchMoreLove() {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff4d6d', '#ff758f', '#c9184a'] });
-    }
-
+    // --- EFFECTS ---
     document.addEventListener('mousedown', (e) => {
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 5; i++) {
             const heart = document.createElement('div');
             heart.classList.add('click-heart');
             heart.innerText = '❤️';
             heart.style.left = e.clientX + 'px';
             heart.style.top = e.clientY + 'px';
-            heart.style.setProperty('--x', (Math.random() - 0.5) * 200 + 'px');
-            heart.style.setProperty('--y', (Math.random() - 0.5) * 200 + 'px');
+            heart.style.setProperty('--x', (Math.random() - 0.5) * 150 + 'px');
+            heart.style.setProperty('--y', (Math.random() - 0.5) * 150 + 'px');
             document.body.appendChild(heart);
             setTimeout(() => heart.remove(), 800);
         }
@@ -281,14 +283,18 @@
     setInterval(() => {
         const emoji = document.createElement('div');
         emoji.classList.add('falling-emoji');
-        emoji.innerText = ['❤️', '💖', '🥰', '💕'][Math.floor(Math.random()*4)];
+        emoji.innerText = '❤️';
         emoji.style.left = Math.random() * 100 + "vw";
         const duration = Math.random() * 3 + 5 + "s";
         emoji.style.animationDuration = duration;
         emoji.style.opacity = "0.2";
         bgContainer.appendChild(emoji);
         setTimeout(() => emoji.remove(), 8000);
-    }, 700);
+    }, 1000);
+
+    function launchMoreLove() {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    }
 </script>
 </body>
 </html>
