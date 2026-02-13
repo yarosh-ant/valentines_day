@@ -14,14 +14,13 @@
             --glass: rgba(255, 255, 255, 0.85);
         }
 
-        /* --- CLICK ANIMATION STYLE --- */
+        /* --- CLICK ANIMATION --- */
         .click-heart {
             position: fixed;
             pointer-events: none;
             z-index: 9998;
             animation: flyOut 0.8s ease-out forwards;
             font-size: 1.2rem;
-            user-select: none;
         }
 
         @keyframes flyOut {
@@ -29,7 +28,6 @@
             100% { transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) scale(0); opacity: 0; }
         }
 
-        /* --- LAYOUT --- */
         body {
             font-family: 'Quicksand', sans-serif;
             background-color: var(--light-pink);
@@ -41,28 +39,15 @@
             margin: 0;
             overflow: hidden;
             position: relative;
-            cursor: default; /* Restored default cursor */
         }
 
         #bg-animation-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
         }
 
-        .falling-emoji {
-            position: absolute;
-            top: -50px;
-            animation: fall linear forwards;
-        }
-
-        @keyframes fall {
-            to { transform: translateY(110vh) rotate(360deg); }
-        }
+        .falling-emoji { position: absolute; top: -50px; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
 
         .container {
             text-align: center;
@@ -71,67 +56,62 @@
             -webkit-backdrop-filter: blur(12px);
             padding: 3.5rem;
             border-radius: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.4);
             box-shadow: 0 25px 50px rgba(255, 77, 109, 0.2);
             max-width: 650px;
             width: 90%;
             z-index: 10;
-            position: relative;
         }
 
         .screen { display: none; }
         .active { display: block; animation: fadeIn 0.6s ease-out; }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
+            from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
 
-        .ask-title {
-            font-family: 'Pacifico', cursive;
-            font-size: 3rem;
-            margin: 1rem 0 2rem;
-            line-height: 1.2;
+        .ask-title { font-family: 'Pacifico', cursive; font-size: 2.8rem; margin-bottom: 1.5rem; }
+
+        input {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            border: 2px solid var(--pink);
+            margin-bottom: 15px;
+            width: 80%;
+            outline: none;
+            text-align: center;
         }
 
-        /* --- BUTTONS --- */
+        .error-box {
+            color: #d00000;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            min-height: 4em;
+            padding: 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
         button {
             background: linear-gradient(45deg, var(--pink), #ff758f);
             color: white;
             border: none;
-            padding: 16px 40px;
-            font-size: 1.2rem;
+            padding: 14px 35px;
+            font-size: 1.1rem;
             border-radius: 100px;
             font-weight: 700;
-            box-shadow: 0 10px 20px rgba(255, 77, 109, 0.3);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            margin: 10px;
-            cursor: pointer; /* Buttons show pointer finger */
+            cursor: pointer;
+            margin: 5px;
+            transition: 0.3s;
         }
 
-        .pulse-btn { animation: pulse 1.5s infinite; }
+        button:hover { transform: scale(1.05); }
+        .back-btn { background: #eee; color: #666; }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
-        }
-
-        #no-btn {
-            background: white;
-            color: var(--pink);
-            border: 2px solid var(--pink);
-            position: relative;
-        }
-
-        /* --- IMAGES --- */
-        img {
-            max-width: 100%;
-            border-radius: 25px;
-            margin: 15px 0;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            object-fit: cover;
-        }
-
+        img { max-width: 100%; border-radius: 25px; margin: 15px 0; object-fit: cover; }
         .image-container { display: flex; gap: 15px; justify-content: center; }
         .image-container img { width: 45%; height: 220px; }
         .big-image { width: 100%; max-height: 350px; }
@@ -145,14 +125,29 @@
     <div id="screen-ask" class="screen active">
         <div style="font-size: 4rem;">💌</div>
         <h1 class="ask-title">Will you be my Valentine?</h1>
-        <div style="display: flex; justify-content: center; flex-wrap: wrap;">
-            <button class="pulse-btn" onclick="nav('screen-story-0')">Yes, I will!</button>
-            <button id="no-btn" onmouseover="moveNoButton()" onclick="goToGuilt()">No</button>
-        </div>
+        <button onclick="nav('screen-verify')">Yes, I will!</button>
+        <button id="no-btn" onmouseover="moveNoButton()" onclick="goToGuilt()">No</button>
+    </div>
+
+    <div id="screen-verify" class="screen">
+        <h1 class="ask-title" style="font-size: 2rem;">Identity Check</h1>
+        <p id="question-text">Enter your date of birth (DD.MM.YYYY)</p>
+        <input type="text" id="verify-input" placeholder="Answer here...">
+        <div id="error-message" class="error-box"></div>
+        <br>
+        <button onclick="checkVerification()">Submit</button>
+        <button class="back-btn" onclick="reset()">Back</button>
+    </div>
+
+    <div id="screen-welcome" class="screen">
+        <div style="font-size: 4rem;">😊</div>
+        <h1 class="ask-title" style="font-size: 2.2rem;">Access Granted!</h1>
+        <p style="font-size: 1.3rem;">I'm glad to see you here :) <br>Let's take a look at what I've prepared for you!</p>
+        <button onclick="nav('screen-story-0')">Let's go!</button>
     </div>
 
     <div id="screen-guilt" class="screen">
-        <h1 class="ask-title" style="font-size: 2.2rem;">What do you mean? Do you really wanna hurt me? Let's act like that never happened</h1>
+        <h1 class="ask-title" style="font-size: 2.2rem;">Do you really wanna hurt me? Let's act like that never happened</h1>
         <img src="images/sad_face.jpg" alt="Sad Face" class="big-image">
         <br>
         <button onclick="reset()">I'm sorry, take me back!</button>
@@ -164,43 +159,63 @@
         <h1 class="ask-title">Forever & Always</h1>
         <img src="images/final_photo.jpg" alt="Final Memory" class="big-image">
         <p>You make this world so much brighter and more beautiful. And I thank you for every single moment we spend together. I love you! Happy Valentine's Day!</p>
-        <button class="pulse-btn" onclick="launchMoreLove()">Make more love</button>
+        <button onclick="launchMoreLove()">Make more love</button>
     </div>
 </div>
 
 <script>
-    // --- CLICK BURST EFFECT ---
-    document.addEventListener('mousedown', (e) => {
-        for (let i = 0; i < 8; i++) {
-            const heart = document.createElement('div');
-            heart.classList.add('click-heart');
-            heart.innerText = ['❤️', '💖', '💕'][Math.floor(Math.random() * 3)];
-            heart.style.left = e.clientX + 'px';
-            heart.style.top = e.clientY + 'px';
-            // Random scatter direction
-            heart.style.setProperty('--x', (Math.random() - 0.5) * 250 + 'px');
-            heart.style.setProperty('--y', (Math.random() - 0.5) * 250 + 'px');
-            document.body.appendChild(heart);
-            // Clean up after animation
-            setTimeout(() => heart.remove(), 800);
-        }
-    });
+    // --- VERIFICATION LOGIC ---
+    let currentStep = 0;
+    const errors = [
+        "Sorry, but you don't have the right clearance. This page requires a specific level of grace, beauty, and patience that you clearly lack. Try being [Wife's Name] and coming back later.",
+        "I'm sorry, I'm afraid I can't let you do that. This area is reserved for the woman who actually knows where my keys are. If you aren't her, you're just a glitch in my system",
+        "You’ve reached a restricted area. Only the person who married me is allowed in here. Since you aren't her, I’ve already sent a notification to her phone. Good luck explaining this!"
+    ];
 
-    // --- BACKGROUND RAIN ---
-    const bgContainer = document.getElementById('bg-animation-container');
-    const loveEmojis = ['❤️', '💖', '🥰', '💕', '🌹', '🌸'];
-    setInterval(() => {
-        const emoji = document.createElement('div');
-        emoji.classList.add('falling-emoji');
-        emoji.innerText = loveEmojis[Math.floor(Math.random() * loveEmojis.length)];
-        emoji.style.left = Math.random() * 100 + "vw";
-        const duration = Math.random() * 3 + 5 + "s";
-        emoji.style.fontSize = Math.random() * 20 + 15 + "px";
-        emoji.style.animationDuration = duration;
-        emoji.style.opacity = Math.random() * 0.4 + 0.2;
-        bgContainer.appendChild(emoji);
-        setTimeout(() => emoji.remove(), parseFloat(duration) * 1000);
-    }, 600);
+    function checkVerification() {
+        const inputField = document.getElementById('verify-input');
+        const input = inputField.value.trim();
+        const errorDisplay = document.getElementById('error-message');
+        
+        if (currentStep === 0) {
+            if (input === "20.12.1992") {
+                currentStep = 1;
+                errorDisplay.innerText = "";
+                inputField.value = "";
+                document.getElementById('question-text').innerText = "What's your cat's name?";
+            } else {
+                showRandomError();
+            }
+        } else if (currentStep === 1) {
+            if (input.toLowerCase() === "hunter") {
+                nav('screen-welcome');
+            } else {
+                showRandomError();
+            }
+        }
+    }
+
+    function showRandomError() {
+        const errorDisplay = document.getElementById('error-message');
+        const randomMsg = errors[Math.floor(Math.random() * errors.length)];
+        errorDisplay.innerText = randomMsg;
+    }
+
+    // --- NAVIGATION LOGIC ---
+    function nav(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function reset() {
+        noHoverCount = 0;
+        currentStep = 0;
+        document.getElementById('verify-input').value = "";
+        document.getElementById('question-text').innerText = "Enter your date of birth (DD.MM.YYYY)";
+        document.getElementById('error-message').innerText = "";
+        document.getElementById('no-btn').style.transform = `translate(0, 0)`;
+        nav('screen-ask');
+    }
 
     // --- STORY DATA ---
     const storyData = [
@@ -217,7 +232,7 @@
     const storyContainer = document.getElementById('story-container');
     storyData.forEach((data, i) => {
         const nextTarget = (i === 4) ? 'screen-final' : `screen-story-${i + 1}`;
-        const prevTarget = (i === 0) ? 'screen-ask' : `screen-story-${i - 1}`;
+        const prevTarget = (i === 0) ? 'screen-welcome' : `screen-story-${i - 1}`;
         storyContainer.innerHTML += `
             <div id="screen-story-${i}" class="screen">
                 <h1 class="ask-title" style="font-size: 2.5rem;">${data.title}</h1>
@@ -232,38 +247,48 @@
         `;
     });
 
-    // --- NAVIGATION LOGIC ---
+    // --- INTERACTION EFFECTS ---
     let noHoverCount = 0;
-    function nav(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
     function moveNoButton() {
         if (noHoverCount < 5) {
             const btn = document.getElementById('no-btn');
-            const x = (Math.random() - 0.5) * 350;
-            const y = (Math.random() - 0.5) * 350;
-            btn.style.transform = `translate(${x}px, ${y}px)`;
+            btn.style.transform = `translate(${(Math.random()-0.5)*350}px, ${(Math.random()-0.5)*350}px)`;
             noHoverCount++;
         }
     }
 
     function goToGuilt() { if (noHoverCount >= 5) nav('screen-guilt'); }
 
-    function reset() {
-        noHoverCount = 0;
-        document.getElementById('no-btn').style.transform = `translate(0, 0)`;
-        nav('screen-ask');
-    }
-
     function launchMoreLove() {
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#ff4d6d', '#ff758f'] });
-        const scalar = 3;
-        const shapes = [confetti.shapeFromText({ text: '❤️', scalar }), confetti.shapeFromText({ text: '💖', scalar })];
-        confetti({ shapes: shapes, particleCount: 40, spread: 160, origin: { y: 0.6 }, scalar: scalar });
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ff4d6d', '#ff758f', '#c9184a'] });
     }
-</script>
 
+    document.addEventListener('mousedown', (e) => {
+        for (let i = 0; i < 6; i++) {
+            const heart = document.createElement('div');
+            heart.classList.add('click-heart');
+            heart.innerText = '❤️';
+            heart.style.left = e.clientX + 'px';
+            heart.style.top = e.clientY + 'px';
+            heart.style.setProperty('--x', (Math.random() - 0.5) * 200 + 'px');
+            heart.style.setProperty('--y', (Math.random() - 0.5) * 200 + 'px');
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 800);
+        }
+    });
+
+    const bgContainer = document.getElementById('bg-animation-container');
+    setInterval(() => {
+        const emoji = document.createElement('div');
+        emoji.classList.add('falling-emoji');
+        emoji.innerText = ['❤️', '💖', '🥰', '💕'][Math.floor(Math.random()*4)];
+        emoji.style.left = Math.random() * 100 + "vw";
+        const duration = Math.random() * 3 + 5 + "s";
+        emoji.style.animationDuration = duration;
+        emoji.style.opacity = "0.2";
+        bgContainer.appendChild(emoji);
+        setTimeout(() => emoji.remove(), 8000);
+    }, 700);
+</script>
 </body>
 </html>
